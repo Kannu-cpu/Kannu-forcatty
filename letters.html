@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open when...</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Young+Serif&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #151a38;
+    --dusk: #2a3163;
+    --paper: #e8edf6;
+    --paper-edge: #c9d2e6;
+    --seal: #c4476b;
+    --lamp: #f2c46d;
+    --text: #1d2342;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 50% 0%, var(--dusk) 0%, var(--ink) 65%) fixed;
+    color: var(--paper);
+    font-family: "Young Serif", Georgia, serif;
+    padding: 56px 20px 80px;
+  }
+  header { max-width: 480px; margin: 0 auto 40px; text-align: center; }
+  h1 { font-weight: 400; font-size: clamp(2rem, 8vw, 2.8rem); line-height: 1.15; }
+  header p {
+    margin-top: 14px;
+    font-family: "Caveat", cursive;
+    font-size: 1.5rem;
+    color: var(--lamp);
+  }
+
+  .stack {
+    max-width: 480px;
+    margin: 0 auto;
+    display: grid;
+    gap: 22px;
+  }
+
+  /* Envelope */
+  .envelope {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    text-align: center;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .35);
+    overflow: hidden;
+    transition: transform .2s ease;
+  }
+  .envelope:active { transform: scale(.98); }
+  .envelope:focus-visible { outline: 3px solid var(--lamp); outline-offset: 4px; }
+  .envelope::before {            /* flap */
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 78px;
+    background: var(--paper-edge);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .seal {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    width: 38px;
+    height: 38px;
+    margin-left: -19px;
+    border-radius: 50%;
+    background: var(--seal);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.2);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 17px;
+  }
+  .label {
+    position: absolute;
+    left: 12px; right: 12px; bottom: 16px;
+    font-family: "Caveat", cursive;
+    font-size: 1.7rem;
+    line-height: 1;
+  }
+  .envelope.opened .seal { background: #8a93ad; }
+  .envelope.opened .seal::after { content: ""; }
+
+  /* Letter overlay */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    place-items: center;
+    padding: 20px;
+    background: rgba(10, 13, 32, .82);
+    z-index: 10;
+  }
+  .overlay.show { display: grid; }
+  .letter {
+    width: 100%;
+    max-width: 460px;
+    max-height: 86vh;
+    overflow-y: auto;
+    background: var(--paper);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 34px 28px 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    transform-origin: 50% 100%;
+    animation: unfold .45s ease-out;
+  }
+  @keyframes unfold {
+    from { transform: scaleY(.15); opacity: 0; }
+    to   { transform: scaleY(1);   opacity: 1; }
+  }
+  .letter h2 {
+    font-weight: 400;
+    font-size: 1.15rem;
+    color: var(--seal);
+    margin-bottom: 18px;
+  }
+  .letter .body {
+    font-family: "Caveat", cursive;
+    font-size: 1.55rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+  .close {
+    margin-top: 26px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--dusk);
+    color: var(--paper);
+    font: inherit;
+    font-size: 1rem;
+    padding: 12px 26px;
+    cursor: pointer;
+  }
+  .close:focus-visible { outline: 3px solid var(--lamp); outline-offset: 3px; }
+
+  /* Heart button */
+  .heart-btn {
+    display: block;
+    margin: 30px auto 0;
+    border: 2px solid var(--lamp);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--lamp);
+    font-family: "Caveat", cursive;
+    font-size: 1.5rem;
+    padding: 10px 28px;
+    cursor: pointer;
+  }
+  .heart-btn:active { background: rgba(242, 196, 109, .15); }
+  .heart-btn:focus-visible { outline: 3px solid var(--lamp); outline-offset: 4px; }
+
+  /* Heart of languages */
+  .heartlayer {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 20;
+    background: rgba(10, 13, 32, .93);
+    cursor: pointer;
+  }
+  .heartlayer.show { display: block; }
+  .stage {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 0;
+    height: 0;
+  }
+  .stage.beat { animation: beat 1.6s ease-in-out infinite; }
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    12%      { transform: scale(1.04); }
+    24%      { transform: scale(1); }
+    36%      { transform: scale(1.03); }
+  }
+  .pt {
+    position: absolute;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    white-space: nowrap;
+    unicode-bidi: plaintext;
+    animation: pop .6s cubic-bezier(.2, 1.4, .4, 1) forwards;
+  }
+  .pt.word {
+    font-family: "Caveat", system-ui, sans-serif;
+    font-weight: 600;
+    color: var(--paper);
+  }
+  .pt.word.big { color: var(--lamp); }
+  .pt.mini { color: var(--seal); }
+  @keyframes pop {
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+  .caption {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 9%;
+    text-align: center;
+    font-family: "Caveat", cursive;
+    font-size: 1.6rem;
+    color: var(--lamp);
+    opacity: 0;
+    animation: fadein 1s ease 4.2s forwards;
+  }
+  @keyframes fadein { to { opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .letter { animation: none; }
+    .envelope { transition: none; }
+    .stage.beat { animation: none; }
+    .pt { animation-duration: .01s; animation-delay: 0s !important; }
+    .caption { animation-duration: .01s; animation-delay: 0s; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Open when…</h1>
+  <p>for the days we're far apart</p>
+</header>
+
+<main class="stack" id="stack"></main>
+
+<button class="heart-btn" id="heart-btn">Tap here ♥</button>
+
+<div class="heartlayer" id="heartlayer" role="dialog" aria-modal="true" aria-label="I love you, in many languages">
+  <div class="stage" id="stage"></div>
+  <div class="caption">I'd say it in every language there is.</div>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="letter-title">
+  <div class="letter">
+    <h2 id="letter-title"></h2>
+    <div class="body" id="letter-body"></div>
+    <button class="close" id="close">Fold it back up</button>
+  </div>
+</div>
+
+<script>
+  /* ✏️  EDIT THIS PART: write your real letters here.
+     Add as many as you like. Keep the quotes and commas. */
+  const letters = [
+    {
+      id: "sad",
+      label: "Open when you're sad",
+      title: "Hey, come here.",
+      text: "Write your letter here.\n\nTell her what you'd say if you were sitting next to her right now."
+    },
+    {
+      id: "miss",
+      label: "Open when you miss me",
+      title: "I miss you too.",
+      text: "Write your letter here.\n\nMaybe a favorite memory of the two of you, or what you're looking forward to when you see each other."
+    },
+    {
+      id: "sleep",
+      label: "Open when you can't sleep",
+      title: "Close your eyes.",
+      text: "Write your letter here.\n\nSomething calming. Maybe describe the day you'll spend together."
+    }
+  ];
+
+  const stack = document.getElementById("stack");
+  const overlay = document.getElementById("overlay");
+  const titleEl = document.getElementById("letter-title");
+  const bodyEl = document.getElementById("letter-body");
+  const closeBtn = document.getElementById("close");
+  let lastFocused = null;
+
+  function opened() {
+    try { return JSON.parse(localStorage.getItem("openedLetters") || "[]"); }
+    catch (e) { return []; }
+  }
+  function markOpened(id) {
+    const list = opened();
+    if (!list.includes(id)) {
+      list.push(id);
+      try { localStorage.setItem("openedLetters", JSON.stringify(list)); } catch (e) {}
+    }
+  }
+
+  letters.forEach(function (l) {
+    const btn = document.createElement("button");
+    btn.className = "envelope" + (opened().includes(l.id) ? " opened" : "");
+    btn.innerHTML = '<span class="seal">♥</span><span class="label"></span>';
+    btn.querySelector(".label").textContent = l.label;
+    btn.addEventListener("click", function () {
+      lastFocused = btn;
+      titleEl.textContent = l.title;
+      bodyEl.textContent = l.text;
+      overlay.classList.add("show");
+      closeBtn.focus();
+      markOpened(l.id);
+      btn.classList.add("opened");
+    });
+    stack.appendChild(btn);
+  });
+
+  function closeLetter() {
+    overlay.classList.remove("show");
+    if (lastFocused) lastFocused.focus();
+  }
+  closeBtn.addEventListener("click", closeLetter);
+  overlay.addEventListener("click", function (e) { if (e.target === overlay) closeLetter(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeLetter(); });
+
+  /* ♥ Heart made of "I love you" in many languages */
+  const outerWords = [
+    "أحبك", "Te amo", "Je t'aime", "愛してる", "Ti amo", "Ich liebe dich", "사랑해",
+    "Seni seviyorum", "我爱你", "मुझे तुमसे प्यार है", "دوستت دارم", "Я тебя люблю",
+    "بحبك", "Σ'αγαπώ"
+  ];
+  const innerWords = [
+    "Ik hou van je", "ฉันรักเธอ", "Jag älskar dig", "Te quiero", "Nakupenda", "Mahal kita"
+  ];
+  const centerWord = "I love you";
+
+  const heartBtn = document.getElementById("heart-btn");
+  const heartLayer = document.getElementById("heartlayer");
+  const stage = document.getElementById("stage");
+
+  /* Heart curve, sampled so points can be spaced evenly along its outline */
+  const curve = [];
+  (function () {
+    let total = 0, prev = null;
+    for (let i = 0; i <= 400; i++) {
+      const t = (i / 400) * Math.PI * 2;
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      if (prev) total += Math.hypot(x - prev.x, y - prev.y);
+      prev = { x: x, y: y };
+      curve.push({ x: x, y: y, d: total });
+    }
+    curve.total = total;
+  })();
+
+  function pointAt(frac) {
+    const target = (frac % 1) * curve.total;
+    for (let i = 1; i < curve.length; i++) {
+      if (curve[i].d >= target) return curve[i];
+    }
+    return curve[curve.length - 1];
+  }
+
+  function buildHeart() {
+    stage.innerHTML = "";
+    stage.classList.remove("beat");
+    const size = Math.min(window.innerWidth * 0.94, window.innerHeight * 0.62);
+    const k = size / 34;                       // pixels per heart-curve unit
+    const wordSize = Math.max(12, Math.min(18, size / 22));
+    let order = 0;
+
+    function place(text, x, y, cls, fontPx, delay) {
+      const el = document.createElement("span");
+      el.className = "pt " + cls;
+      el.dir = "auto";
+      el.textContent = text;
+      el.style.left = (x * k).toFixed(1) + "px";
+      el.style.top = (-(y + 2.5) * k).toFixed(1) + "px";
+      el.style.fontSize = fontPx + "px";
+      el.style.animationDelay = delay + "s";
+      stage.appendChild(el);
+    }
+
+    /* small hearts tracing the outline fill the gaps between words */
+    const outerN = outerWords.length;
+    for (let i = 0; i < outerN; i++) {
+      [1 / 3, 2 / 3].forEach(function (off) {
+        const p = pointAt((i + off) / outerN);
+        place("♥", p.x, p.y, "mini", wordSize * 0.9, 0.2 + ((i + off) / outerN) * 2.6);
+      });
+    }
+
+    /* outer ring of words, every other one nudged inward so long words don't collide */
+    outerWords.forEach(function (w, i) {
+      const p = pointAt(i / outerN);
+      const pull = i % 2 === 0 ? 1 : 0.88;
+      place(w, p.x * pull, (p.y + 2.5) * pull - 2.5, "word", wordSize, 0.1 + (i / outerN) * 2.6);
+    });
+
+    /* inner ring */
+    const innerN = innerWords.length;
+    innerWords.forEach(function (w, i) {
+      const p = pointAt(i / innerN);
+      place(w, p.x * 0.5, (p.y + 2.5) * 0.5 - 2.5 + 0.8, "word", wordSize * 0.95, 2.9 + (i / innerN) * 1.0);
+    });
+
+    /* center */
+    place(centerWord, 0, 1.5, "word big", wordSize * 1.7, 3.9);
+
+    setTimeout(function () { stage.classList.add("beat"); }, 4600);
+  }
+
+  function showHeart() {
+    buildHeart();
+    heartLayer.classList.add("show");
+  }
+  function hideHeart() {
+    heartLayer.classList.remove("show");
+    stage.innerHTML = "";
+    heartBtn.focus();
+  }
+  heartBtn.addEventListener("click", showHeart);
+  heartLayer.addEventListener("click", hideHeart);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && heartLayer.classList.contains("show")) hideHeart();
+  });
+</script>
+</body>
+</html>
